@@ -3,7 +3,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 // Create a context to share the "logged in" user across all components
 const UserContext = createContext(null);
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // Provider wraps the entire app and manages which user is selected
 export function UserProvider({ children }) {

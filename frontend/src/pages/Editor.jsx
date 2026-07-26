@@ -7,7 +7,7 @@ import { useUser } from "../context/UserContext";
 import EditorToolbar from "../components/EditorToolbar";
 import ShareModal from "../components/ShareModal";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function EditorPage() {
   const { id } = useParams();
@@ -22,6 +22,8 @@ export default function EditorPage() {
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [userRole, setUserRole] = useState(null); // "owner" | "editor" | "viewer"
   const [showShareModal, setShowShareModal] = useState(false);
+  // Stores the fetched document content until the editor is ready to receive it
+  const [pendingContent, setPendingContent] = useState(null);
 
   // Ref to hold the latest content for auto-save without re-rendering
   const latestContent = useRef("");
@@ -35,6 +37,8 @@ export default function EditorPage() {
     editable: !isReadOnly,
     // Track content changes for auto-save
     onUpdate: ({ editor }) => {
+      // Skip save-related side effects when the user has read-only access
+      if (isReadOnly) return;
       latestContent.current = editor.getHTML();
       setSaveStatus("unsaved");
       // Reset the debounce timer on every keystroke
@@ -87,9 +91,12 @@ export default function EditorPage() {
     }
   };
 
-  // Fetch the document on mount and determine access level
+  // --- Effect 1: Fetch the document data (runs once on mount / user change) ---
+  // This does NOT touch the editor at all — it just loads data into React state.
   useEffect(() => {
     if (!currentUser) return;
+
+    let cancelled = false; // Prevents state updates if the component unmounts
 
     const fetchDocument = async () => {
       setLoading(true);
@@ -109,6 +116,8 @@ export default function EditorPage() {
         }
 
         const doc = await res.json();
+        if (cancelled) return; // Don't update state if the component unmounted
+
         setDocument(doc);
         setTitle(doc.title);
 
@@ -119,22 +128,35 @@ export default function EditorPage() {
         const canEdit = doc.userRole === "owner" || doc.userRole === "editor";
         setIsReadOnly(!canEdit);
 
-        // Load content into the editor once it's ready
-        if (editor && doc.content) {
-          editor.commands.setContent(doc.content);
-          latestContent.current = doc.content;
-        }
+        // Store the content so Effect 2 can load it into the editor
+        setPendingContent(doc.content || "");
       } catch (err) {
-        setError(err.message);
+        if (!cancelled) setError(err.message);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchDocument();
-  }, [id, currentUser, editor]);
 
-  // Update editor editable state when readOnly changes
+    // Cleanup: if the effect re-runs or unmounts, skip stale updates
+    return () => { cancelled = true; };
+  }, [id, currentUser]);
+
+  // --- Effect 2: Load content into the editor once BOTH the editor and the ---
+  // fetched document are ready. This avoids the "Cannot read properties of null"
+  // error that happened when the old code tried editor.commands.setContent()
+  // inside the async fetch callback where `editor` could be stale/null.
+  useEffect(() => {
+    if (editor && pendingContent !== null) {
+      editor.commands.setContent(pendingContent);
+      latestContent.current = pendingContent;
+      // Clear pending so we don't re-load on every re-render
+      setPendingContent(null);
+    }
+  }, [editor, pendingContent]);
+
+  // --- Effect 3: Sync the editor's editable state when isReadOnly changes ---
   useEffect(() => {
     if (editor) {
       editor.setEditable(!isReadOnly);
@@ -175,22 +197,25 @@ export default function EditorPage() {
           &larr; Back
         </button>
         <div className="editor-header-right">
-          <span
-            className={`save-status ${
-              saveStatus === "saving"
-                ? "saving"
-                : saveStatus === "saved"
-                ? "saved"
-                : saveStatus === "error"
-                ? "error"
-                : ""
-            }`}
-          >
-            {saveStatus === "saving" && "Saving..."}
-            {saveStatus === "saved" && "Saved"}
-            {saveStatus === "unsaved" && "Unsaved changes"}
-            {saveStatus === "error" && "Save failed"}
-          </span>
+          {/* Save status — only relevant for editors and owners */}
+          {!isReadOnly && (
+            <span
+              className={`save-status ${
+                saveStatus === "saving"
+                  ? "saving"
+                  : saveStatus === "saved"
+                  ? "saved"
+                  : saveStatus === "error"
+                  ? "error"
+                  : ""
+              }`}
+            >
+              {saveStatus === "saving" && "Saving..."}
+              {saveStatus === "saved" && "Saved"}
+              {saveStatus === "unsaved" && "Unsaved changes"}
+              {saveStatus === "error" && "Save failed"}
+            </span>
+          )}
 
           {/* Share button — only visible to the owner */}
           {userRole === "owner" && (
@@ -204,12 +229,13 @@ export default function EditorPage() {
         </div>
       </div>
 
-      {/* Editable title field */}
+      {/* Editable title field — readOnly for viewers */}
       <input
         className="editor-title"
         type="text"
         value={title}
         onChange={(e) => {
+          if (isReadOnly) return;
           setTitle(e.target.value);
           setSaveStatus("unsaved");
         }}
@@ -230,9 +256,13 @@ export default function EditorPage() {
       )}
 
       {/* TipTap toolbar and editor area */}
-      {editor && <EditorToolbar editor={editor} />}
+      {editor && <EditorToolbar editor={editor} isReadOnly={isReadOnly} />}
       <div className="editor-content">
-        <EditorContent editor={editor} />
+        {editor ? (
+          <EditorContent editor={editor} />
+        ) : (
+          <p className="editor-loading">Loading editor...</p>
+        )}
       </div>
 
       {/* Share modal — shown when the owner clicks "Share" */}

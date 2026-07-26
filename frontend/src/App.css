@@ -151,7 +151,46 @@
   gap: 10px;
 }
 
-.upload-hint {
+/* ── Drop Zone ───────────────────────────────────────────────────── */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 32px 20px;
+  text-align: center;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 28px;
+}
+
+.drop-zone:hover {
+  border-color: var(--primary);
+}
+
+/* Highlighted state — shown while a file is being dragged over */
+.drop-zone--active {
+  border-color: var(--primary);
+  background: #eef2ff;
+}
+
+.drop-zone__text {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.drop-zone__text--highlight {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.drop-zone__link {
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.drop-zone__hint {
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -440,6 +479,21 @@
 .toolbar-btn.active {
   background: var(--primary);
   color: white;
+}
+
+/* Disabled state — shown when the user has viewer/read-only access */
+.toolbar--readonly {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.toolbar-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toolbar-btn:disabled:hover {
+  background: transparent;
 }
 
 .toolbar-divider {

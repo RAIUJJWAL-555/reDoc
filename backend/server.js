@@ -14,8 +14,12 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // --- Middleware ---
-// Enable CORS so the React frontend can talk to this server
-app.use(cors());
+// Enable CORS — if FRONTEND_URL is set, only allow that origin;
+// otherwise allow all origins (useful during local development)
+const corsOptions = process.env.FRONTEND_URL
+  ? { origin: process.env.FRONTEND_URL, credentials: true }
+  : {};
+app.use(cors(corsOptions));
 
 // Parse incoming JSON requests (req.body)
 app.use(express.json());
@@ -26,7 +30,12 @@ app.use("/api/documents", uploadRoutes);
 app.use("/api/shares", shareRoutes);
 app.use("/api/users", userRoutes);
 
-// Health check endpoint
+// Health check — used by deployment platforms (Render, etc.) to verify the app is alive
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// Legacy root endpoint
 app.get("/", (req, res) => {
   res.json({ message: "reDoc API is running" });
 });
@@ -39,11 +48,17 @@ app.use((err, req, res, next) => {
 });
 
 // --- Start server ---
-const start = async () => {
-  await connectDB();
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-};
+// Only listen when NOT in test mode (jest sets NODE_ENV=test)
+// This lets supertest use the app without needing a running server
+if (process.env.NODE_ENV !== "test") {
+  const start = async () => {
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  };
+  start();
+}
 
-start();
+// Export the app so supertest (and other tools) can use it
+export default app;

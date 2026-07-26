@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import heroImg from "../assets/hero.png";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+// Allowed file extensions and maximum upload size
+const ALLOWED_EXTENSIONS = ["txt", "md"];
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB
 
 export default function Dashboard() {
   const { currentUser } = useUser();
@@ -16,7 +20,10 @@ export default function Dashboard() {
   const [creating, setCreating] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
-  const fileInputRef = useRef(null); // Ref to trigger the hidden file input
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef(null);
+  // Tracks how many nested dragEnter events are active (see handleDragEnter)
+  const dragCounterRef = useRef(0);
 
   // Fetch both owned and shared documents when the user changes
   useEffect(() => {
@@ -71,31 +78,46 @@ export default function Dashboard() {
     }
   };
 
-  // Handle file upload — sends the file to the backend as multipart/form-data
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // ── File validation ──────────────────────────────────────────────
+  // Checks extension (.txt / .md) and size (≤ 2 MB) before uploading.
+  // Returns an error string if invalid, or null if the file is OK.
+  const validateFile = (file) => {
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      return "Only .txt and .md files are allowed.";
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return "File is too large. Maximum size is 2 MB.";
+    }
+    return null;
+  };
 
+  // ── Shared upload logic ──────────────────────────────────────────
+  // Called by both the click-to-upload button AND the drop handler
+  // so we don't duplicate the fetch / navigation code.
+  const uploadFile = async (file) => {
     setUploadError(null);
-    setUploading(true);
 
+    // Validate before sending to the server
+    const validationError = validateFile(file);
+    if (validationError) {
+      setUploadError(validationError);
+      return;
+    }
+
+    setUploading(true);
     try {
-      // Build a FormData object — this is how browsers send file uploads
-      // The backend expects a "file" field and a "userId" field
       const formData = new FormData();
       formData.append("file", file);
       formData.append("userId", currentUser._id);
 
       const res = await fetch(`${API_URL}/api/documents/upload`, {
         method: "POST",
-        body: formData, // No Content-Type header — browser sets it automatically with the boundary
+        body: formData, // browser sets Content-Type + boundary automatically
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Upload failed");
-      }
+      if (!res.ok) throw new Error(data.error || "Upload failed");
 
       // Success — navigate to the new document's editor
       navigate(`/document/${data._id}`);
@@ -103,11 +125,54 @@ export default function Dashboard() {
       setUploadError(err.message);
     } finally {
       setUploading(false);
-      // Reset the file input so the same file can be re-uploaded if needed
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
+      // Reset the hidden file input so the same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  // Called when the user picks a file via the native file picker
+  const handleFileInput = (e) => {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
+  };
+
+  // ── Drag-and-drop handlers ───────────────────────────────────────
+  // The browser fires dragEnter / dragLeave on every child element inside
+  // the drop zone, which causes flickering. We solve this with a simple
+  // counter: increment on dragEnter, decrement on dragLeave, and only
+  // show the highlight when the counter goes above zero.
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();          // required so the browser allows a drop
+    e.stopPropagation();
+    dragCounterRef.current += 1;
+    if (dragCounterRef.current === 1) {
+      setIsDragOver(true);       // first child entered → show highlight
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();          // WITHOUT this the browser will open the file
+    e.stopPropagation();         // instead of firing the drop event
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current -= 1;
+    if (dragCounterRef.current === 0) {
+      setIsDragOver(false);      // last child left → hide highlight
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current = 0;
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) uploadFile(file);
   };
 
   // Format a date string into a readable format
@@ -151,24 +216,49 @@ export default function Dashboard() {
           >
             {creating ? "Creating..." : "+ New Document"}
           </button>
-
-          {/* Hidden file input — triggered by the upload button */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept=".txt,.md"
-            onChange={handleFileUpload}
-            style={{ display: "none" }}
-          />
-          <button
-            className="btn-secondary"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={creating || uploading}
-          >
-            {uploading ? "Uploading..." : "Upload Document"}
-          </button>
-          <span className="upload-hint">Supported formats: .txt, .md</span>
         </div>
+      </div>
+
+      {/* ── Drop zone — drag-and-drop OR click to upload ─────────── */}
+      {/* Clicking anywhere inside opens the native file picker.
+          Dragging a file over shows a highlighted overlay. */}
+      <div
+        className={`drop-zone ${isDragOver ? "drop-zone--active" : ""}`}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") fileInputRef.current?.click();
+        }}
+      >
+        {/* Hidden file input — triggered by clicking the drop zone */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept=".txt,.md"
+          onChange={handleFileInput}
+          style={{ display: "none" }}
+        />
+
+        {uploading ? (
+          <p className="drop-zone__text">Uploading…</p>
+        ) : isDragOver ? (
+          <p className="drop-zone__text drop-zone__text--highlight">
+            Drop file to upload
+          </p>
+        ) : (
+          <>
+            <p className="drop-zone__text">
+              Drag &amp; drop a file here, or{" "}
+              <span className="drop-zone__link">browse</span>
+            </p>
+            <p className="drop-zone__hint">Supported formats: .txt, .md · Max 2 MB</p>
+          </>
+        )}
       </div>
 
       {/* Upload error shown inline near the buttons */}
