@@ -753,3 +753,42 @@
 .btn-remove:hover {
   background: #fef2f2;
 }
+
+/* ============================================
+   Download Dropdown
+   ============================================ */
+.download-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.download-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 180px;
+  z-index: 150;
+  overflow: hidden;
+}
+
+.download-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.download-menu button:hover {
+  background: var(--bg);
+}

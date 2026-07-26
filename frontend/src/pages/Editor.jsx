@@ -7,6 +7,70 @@ import { useUser } from "../context/UserContext";
 import EditorToolbar from "../components/EditorToolbar";
 import ShareModal from "../components/ShareModal";
 
+// ── HTML → Plain Text ─────────────────────────────────────────────
+// Strips all HTML tags, decodes entities, and returns clean text.
+const htmlToText = (html) => {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
+};
+
+// ── HTML → Markdown ───────────────────────────────────────────────
+// Lightweight converter that handles the tags TipTap produces:
+// h1, h2, h3, strong, em, u, ul, ol, li, p, br, a, code, pre.
+const htmlToMarkdown = (html) => {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+
+  const walk = (node) => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent;
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) return "";
+
+    const tag = node.tagName.toLowerCase();
+    const children = Array.from(node.childNodes).map(walk).join("");
+
+    switch (tag) {
+      case "h1": return `# ${children}\n\n`;
+      case "h2": return `## ${children}\n\n`;
+      case "h3": return `### ${children}\n\n`;
+      case "h4": return `#### ${children}\n\n`;
+      case "h5": return `##### ${children}\n\n`;
+      case "h6": return `###### ${children}\n\n`;
+      case "strong":
+      case "b":   return `**${children}**`;
+      case "em":
+      case "i":   return `*${children}*`;
+      case "u":   return `<u>${children}</u>`;
+      case "code": return `\`${children}\``;
+      case "pre":  return `\`\`\`\n${children}\n\`\`\`\n\n`;
+      case "a": {
+        const href = node.getAttribute("href") || "";
+        return `[${children}](${href})`;
+      }
+      case "br":   return "\n";
+      case "p":    return `${children}\n\n`;
+      case "li":   return `- ${children}\n`;
+      case "ul":   return `${children}\n`;
+      case "ol": {
+        // Number the list items
+        const items = Array.from(node.children);
+        return items.map((li, i) => `${i + 1}. ${walk(li).replace(/^- /, "")}`).join("\n") + "\n\n";
+      }
+      case "blockquote": return `> ${children}\n\n`;
+      case "hr":   return "---\n\n";
+      default:     return children;
+    }
+  };
+
+  let md = walk(div);
+  // Clean up 3+ consecutive newlines to a max of 2
+  md = md.replace(/\n{3,}/g, "\n\n");
+  return md.trim() + "\n";
+};
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function EditorPage() {
@@ -24,6 +88,9 @@ export default function EditorPage() {
   const [showShareModal, setShowShareModal] = useState(false);
   // Stores the fetched document content until the editor is ready to receive it
   const [pendingContent, setPendingContent] = useState(null);
+
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadMenuRef = useRef(null);
 
   // Ref to hold the latest content for auto-save without re-rendering
   const latestContent = useRef("");
@@ -91,12 +158,31 @@ export default function EditorPage() {
     }
   };
 
-  // Download the document content as an HTML file
-  const handleDownload = () => {
+  // Download the document in the chosen format (txt, md, or html)
+  const handleDownload = (format = "md") => {
     if (!editor) return;
     const htmlContent = editor.getHTML();
-    const fileName = (title || "document").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().replace(/\s+/g, "-");
-    const fullHtml = `<!DOCTYPE html>
+    const fileName = (title || "document")
+      .replace(/[^a-zA-Z0-9-_ ]/g, "")
+      .trim()
+      .replace(/\s+/g, "-");
+
+    let content, mimeType, ext;
+
+    switch (format) {
+      case "txt":
+        content = htmlToText(htmlContent);
+        mimeType = "text/plain";
+        ext = "txt";
+        break;
+      case "md":
+        content = `# ${title || "Untitled Document"}\n\n${htmlToMarkdown(htmlContent)}`;
+        mimeType = "text/markdown";
+        ext = "md";
+        break;
+      default: {
+        // HTML fallback
+        content = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -116,14 +202,33 @@ export default function EditorPage() {
   ${htmlContent}
 </body>
 </html>`;
-    const blob = new Blob([fullHtml], { type: "text/html" });
+        mimeType = "text/html";
+        ext = "html";
+      }
+    }
+
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${fileName}.html`;
+    a.download = `${fileName}.${ext}`;
     a.click();
     URL.revokeObjectURL(url);
+    setShowDownloadMenu(false);
   };
+
+  // Close the download dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target)) {
+        setShowDownloadMenu(false);
+      }
+    };
+    if (showDownloadMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [showDownloadMenu]);
 
   // --- Effect 1: Fetch the document data (runs once on mount / user change) ---
   // This does NOT touch the editor at all — it just loads data into React state.
@@ -251,14 +356,29 @@ export default function EditorPage() {
             </span>
           )}
 
-          {/* Download button — visible to everyone */}
-          <button
-            className="btn-secondary"
-            onClick={handleDownload}
-            title="Download document"
-          >
-            ↓ Download
-          </button>
+          {/* Download dropdown — visible to everyone */}
+          <div className="download-wrapper" ref={downloadMenuRef}>
+            <button
+              className="btn-secondary"
+              onClick={() => setShowDownloadMenu((v) => !v)}
+              title="Download document"
+            >
+              ↓ Download ▾
+            </button>
+            {showDownloadMenu && (
+              <div className="download-menu">
+                <button onClick={() => handleDownload("md")}>
+                  Markdown (.md)
+                </button>
+                <button onClick={() => handleDownload("txt")}>
+                  Plain Text (.txt)
+                </button>
+                <button onClick={() => handleDownload("html")}>
+                  HTML (.html)
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Share button — only visible to the owner */}
           {userRole === "owner" && (
