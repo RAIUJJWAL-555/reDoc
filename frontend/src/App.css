@@ -1,68 +1,109 @@
-/* ============================================
-   App Header
-   ============================================ */
+/* ==========================================================================
+   reDoc Main Application Styling
+   ========================================================================== */
+
+/* ==========================================================================
+   App Header & Global Layout
+   ========================================================================== */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1.5px solid #000000;
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: all 0.3s ease;
 }
 
 .app-logo {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
   letter-spacing: -0.5px;
+  text-decoration: none;
+  transition: transform 0.2s;
 }
 
 .app-logo:hover {
-  color: var(--primary-hover);
+  color: var(--text);
+  transform: scale(1.02);
+}
+
+.app-logo-icon {
+  color: var(--text);
+  display: flex;
+  align-items: center;
 }
 
 .app-main {
   flex: 1;
-  max-width: 960px;
+  max-width: 1060px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px;
+  padding: 40px 24px;
+  position: relative;
+  z-index: 1;
 }
 
-/* ============================================
+/* ==========================================================================
    User Selector
-   ============================================ */
+   ========================================================================== */
 .user-selector {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
 .user-selector select {
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: 8px 16px;
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-pill);
   background: var(--surface);
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text);
   cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 32px;
+}
+
+.user-selector select:hover {
+  background-color: #fafafa;
+  transform: translateY(-1px);
+}
+
+.user-selector select:focus {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
 .user-selector-loading {
   font-size: 13px;
+  font-weight: 500;
   color: var(--text-muted);
 }
 
-/* ============================================
-   Dashboard
-   ============================================ */
+/* ==========================================================================
+   Dashboard Page
+   ========================================================================== */
 
-/* Hero Section */
+/* Hero (Logged Out State Fallback) */
 .hero {
   display: flex;
   align-items: center;
@@ -77,13 +118,15 @@
 .hero-content {
   flex: 1;
   min-width: 280px;
+  text-align: left;
 }
 
 .hero-title {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1.2;
-  margin-bottom: 16px;
+  font-family: var(--serif);
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1.1;
+  margin-bottom: 20px;
   color: var(--text);
 }
 
@@ -91,16 +134,21 @@
   font-size: 18px;
   color: var(--text-muted);
   line-height: 1.6;
-  margin-bottom: 24px;
-  max-width: 420px;
-  margin-left: auto;
-  margin-right: auto;
+  margin-bottom: 32px;
+  max-width: 480px;
 }
 
 .hero-cta {
-  font-size: 15px;
-  color: var(--primary);
-  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.04);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
 }
 
 .hero-image-wrapper {
@@ -108,277 +156,335 @@
   min-width: 200px;
   display: flex;
   justify-content: center;
+  animation: float-slow 6s ease-in-out infinite;
 }
 
 .hero-image {
-  max-width: 360px;
+  max-width: 320px;
   width: 100%;
   height: auto;
-  border-radius: 12px;
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
 }
 
 @media (max-width: 700px) {
   .hero {
     flex-direction: column-reverse;
-    padding: 48px 16px 40px;
+    padding: 48px 16px;
     gap: 32px;
   }
-
-  .hero-title {
-    font-size: 30px;
+  .hero-content {
+    text-align: center;
   }
-
-  .hero-image {
-    max-width: 260px;
+  .hero-subtitle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-title {
+    font-size: 36px;
   }
 }
 
+/* Dashboard Header & Section layout */
 .dashboard-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 }
 
 .dashboard-header h1 {
-  font-size: 28px;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  color: var(--text);
 }
 
 .dashboard-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-/* ── Drop Zone ───────────────────────────────────────────────────── */
+/* Drop Zone (File Import) */
 .drop-zone {
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 32px 20px;
+  border: 2px dashed #000000;
+  border-radius: var(--radius-lg);
+  padding: 40px 24px;
   text-align: center;
   background: var(--surface);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-  margin-bottom: 28px;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  margin-bottom: 40px;
+  box-shadow: var(--shadow-sm);
 }
 
 .drop-zone:hover {
-  border-color: var(--primary);
+  transform: translateY(-2px);
+  background: #f8fafc;
+  box-shadow: var(--shadow-md);
 }
 
-/* Highlighted state — shown while a file is being dragged over */
 .drop-zone--active {
   border-color: var(--primary);
   background: #eef2ff;
 }
 
 .drop-zone__text {
-  font-size: 15px;
-  color: var(--text-muted);
-  margin-bottom: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
 }
 
 .drop-zone__text--highlight {
   color: var(--primary);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .drop-zone__link {
-  color: var(--primary);
-  font-weight: 500;
+  color: var(--text);
+  font-weight: 700;
   text-decoration: underline;
 }
 
 .drop-zone__hint {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
 .dashboard-loading {
   text-align: center;
-  padding: 60px 20px;
+  padding: 80px 20px;
   color: var(--text-muted);
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .error-message {
-  padding: 12px 16px;
+  padding: 12px 18px;
   background: #fef2f2;
-  border: 1px solid #fecaca;
+  border: 1.5px solid #ef4444;
   border-radius: var(--radius);
-  color: var(--danger);
-  margin-bottom: 20px;
+  color: #b91c1c;
+  margin-bottom: 24px;
   font-size: 14px;
+  font-weight: 600;
 }
 
-/* Document sections */
+/* Document Sections & Cards */
 .doc-section {
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
 
 .doc-section h2 {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: var(--text);
+  letter-spacing: -0.2px;
 }
 
 .empty-state {
   color: var(--text-muted);
-  font-size: 15px;
-  padding: 40px;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 48px;
   text-align: center;
   background: var(--surface);
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-lg);
 }
 
-/* Document card grid */
 .doc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
 }
 
 .doc-card {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-lg);
+  padding: 24px;
   cursor: pointer;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .doc-card:hover {
+  transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--primary);
-}
-
-.doc-card-title {
-  font-size: 16px;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .doc-card-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-/* Role badges on dashboard cards */
+.doc-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Role Badges with pastel overlays and clear border */
 .role-badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
   white-space: nowrap;
   flex-shrink: 0;
+  border: 1px solid currentColor;
 }
 
 .role-badge.owner {
-  background: #ede9fe;
+  background: rgba(109, 40, 217, 0.06);
   color: #6d28d9;
 }
 
 .role-badge.viewer {
-  background: #e0f2fe;
+  background: rgba(3, 105, 161, 0.06);
   color: #0369a1;
 }
 
 .role-badge.editor {
-  background: #dcfce7;
+  background: rgba(21, 128, 61, 0.06);
   color: #15803d;
 }
 
 .doc-card-date {
   font-size: 13px;
   color: var(--text-muted);
+  margin-top: auto;
 }
 
 .doc-card-owner {
   font-size: 13px;
-  color: var(--primary);
-  margin-top: 4px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-/* ============================================
-   Buttons
-   ============================================ */
+.doc-card-owner::before {
+  content: "👤";
+  font-size: 11px;
+}
+
+/* ==========================================================================
+   Buttons (Pill Design System)
+   ========================================================================== */
 .btn-primary {
-  padding: 10px 20px;
+  padding: 10px 24px;
   background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius);
+  color: #ffffff;
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-pill);
   font-size: 14px;
-  font-weight: 500;
-  transition: background 0.15s;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: var(--primary-hover);
+  transform: scale(1.02);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-secondary {
-  padding: 8px 16px;
+  padding: 10px 24px;
   background: var(--surface);
   color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-pill);
   font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary:hover {
-  background: var(--bg);
+  background: #fafafa;
+  transform: scale(1.02);
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
 }
 
 .btn-back {
-  padding: 6px 12px;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-size: 14px;
-  color: var(--text-muted);
-  transition: background 0.15s;
+  padding: 8px 18px;
+  background: var(--surface);
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-back:hover {
-  background: var(--bg);
+  background: #fafafa;
+  transform: scale(1.02);
 }
 
-/* ============================================
+/* ==========================================================================
    Editor Page
-   ============================================ */
+   ========================================================================== */
+.editor-page {
+  display: flex;
+  flex-direction: column;
+}
+
 .editor-loading,
 .editor-error {
   text-align: center;
-  padding: 80px 20px;
+  padding: 100px 20px;
   color: var(--text-muted);
-  font-size: 16px;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .editor-error p {
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  font-weight: 600;
+  color: #b91c1c;
 }
 
 .editor-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 .editor-header-right {
@@ -387,109 +493,125 @@
   gap: 12px;
 }
 
-/* Save status indicator */
+/* Save Status Indicator */
 .save-status {
   font-size: 13px;
+  font-weight: 600;
   color: var(--text-muted);
-  transition: color 0.2s;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .save-status.saving {
   color: var(--warning);
+  background: #fef3c7;
 }
 
 .save-status.saved {
   color: var(--success);
+  background: #ecfdf5;
 }
 
 .save-status.error {
   color: var(--danger);
+  background: #fef2f2;
 }
 
-/* Editable title input */
+/* Editable Title Input */
 .editor-title {
   width: 100%;
   border: none;
+  border-bottom: 1.5px solid transparent;
   outline: none;
-  font-size: 28px;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 400;
   padding: 8px 0;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
   background: transparent;
   color: var(--text);
+  transition: border-bottom-color 0.2s;
 }
 
 .editor-title::placeholder {
-  color: var(--text-muted);
+  color: #cbd5e1;
 }
 
 .editor-title:focus {
-  border-bottom: 2px solid var(--primary);
+  border-bottom-color: #000000;
 }
 
 .editor-title[readonly] {
   cursor: default;
 }
 
-/* Read-only banner */
+/* Read-Only Banner */
 .readonly-banner {
-  padding: 8px 14px;
-  background: #fef3c7;
-  border: 1px solid #fde68a;
+  padding: 10px 16px;
+  background: #fffbeb;
+  border: 1.5px solid #d97706;
   border-radius: var(--radius);
-  color: #92400e;
+  color: #b45309;
   font-size: 13px;
-  margin-bottom: 16px;
+  font-weight: 600;
+  margin-bottom: 24px;
 }
 
-/* ============================================
+/* ==========================================================================
    TipTap Toolbar
-   ============================================ */
+   ========================================================================== */
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 2px;
-  padding: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  margin-bottom: 4px;
+  gap: 4px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid #000000;
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
   flex-wrap: wrap;
+  position: relative;
+  z-index: 10;
 }
 
 .toolbar-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  height: 34px;
+  min-width: 32px;
+  height: 32px;
   padding: 4px 8px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   background: transparent;
   color: var(--text);
-  font-size: 14px;
-  transition: background 0.1s;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.15s;
 }
 
 .toolbar-btn:hover {
-  background: var(--bg);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .toolbar-btn.active {
-  background: var(--primary);
-  color: white;
+  background: #000000;
+  color: #ffffff;
 }
 
-/* Disabled state — shown when the user has viewer/read-only access */
 .toolbar--readonly {
-  opacity: 0.5;
+  opacity: 0.4;
   pointer-events: none;
 }
 
 .toolbar-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .toolbar-btn:disabled:hover {
@@ -497,50 +619,59 @@
 }
 
 .toolbar-divider {
-  width: 1px;
-  height: 24px;
-  background: var(--border);
-  margin: 0 6px;
+  width: 1.5px;
+  height: 20px;
+  background: #000000;
+  margin: 0 8px;
+  opacity: 0.2;
 }
 
-/* ============================================
-   TipTap Editor Content
-   ============================================ */
+/* ==========================================================================
+   TipTap Editor Content Area
+   ========================================================================== */
 .editor-content {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-top: none;
+  border: 1.5px solid #000000;
   border-radius: 0 0 var(--radius) var(--radius);
-  min-height: 400px;
-  padding: 20px;
+  min-height: 480px;
+  padding: 40px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
 }
 
 /* Style the editor's inner content area */
 .editor-content .tiptap {
   outline: none;
-  min-height: 360px;
+  min-height: 400px;
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.7;
 }
 
 .editor-content .tiptap p {
-  margin-bottom: 0.75em;
+  margin-bottom: 1em;
 }
 
 .editor-content .tiptap h1 {
-  font-size: 2em;
-  font-weight: 700;
-  margin: 0.67em 0;
+  font-family: var(--serif);
+  font-size: 2.2em;
+  font-weight: 400;
+  margin: 1.2em 0 0.6em;
+  line-height: 1.2;
 }
 
 .editor-content .tiptap h2 {
-  font-size: 1.5em;
-  font-weight: 600;
-  margin: 0.75em 0;
+  font-family: var(--serif);
+  font-size: 1.6em;
+  font-weight: 400;
+  margin: 1.2em 0 0.6em;
+  line-height: 1.3;
 }
 
 .editor-content .tiptap ul,
 .editor-content .tiptap ol {
-  padding-left: 1.5em;
-  margin-bottom: 0.75em;
+  padding-left: 1.8em;
+  margin-bottom: 1em;
 }
 
 .editor-content .tiptap ul {
@@ -552,133 +683,177 @@
 }
 
 .editor-content .tiptap li {
-  margin-bottom: 0.25em;
+  margin-bottom: 0.4em;
 }
 
 .editor-content .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
-  color: var(--text-muted);
+  color: #cbd5e1;
   pointer-events: none;
   height: 0;
 }
 
-/* ============================================
-   Share Modal
-   ============================================ */
+/* ==========================================================================
+   Share Modal (Overlay / Dialog)
+   ========================================================================== */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(15, 23, 42, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
+  animation: modal-fade-in 0.2s ease-out;
 }
 
 .modal {
   background: var(--surface);
-  border-radius: var(--radius);
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-lg);
   width: 480px;
   max-width: 90vw;
-  max-height: 80vh;
+  max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  padding: 20px 24px;
+  border-bottom: 1.5px solid #000000;
 }
 
 .modal-header h2 {
-  font-size: 18px;
-  font-weight: 600;
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .modal-close {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 20px;
+  font-weight: 700;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 0 4px;
   line-height: 1;
+  padding: 4px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
 }
 
 .modal-close:hover {
+  background: rgba(0, 0, 0, 0.05);
   color: var(--text);
 }
 
-/* Share form inside the modal */
+/* Share Form */
 .share-form {
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  padding: 24px;
+  border-bottom: 1.5px solid #000000;
 }
 
 .share-form-row {
   display: flex;
-  gap: 8px;
+  gap: 12px;
 }
 
 .share-input {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: 10px 18px;
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-pill);
   font-size: 14px;
+  font-weight: 500;
   outline: none;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s;
 }
 
 .share-input:focus {
-  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
 }
 
 .share-select {
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  padding: 10px 32px 10px 18px;
+  border: 1.5px solid #000000;
+  border-radius: var(--radius-pill);
   font-size: 14px;
+  font-weight: 700;
   background: var(--surface);
   cursor: pointer;
+  outline: none;
+  box-shadow: var(--shadow-sm);
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  transition: all 0.2s;
 }
 
-/* Success/error messages inside the modal */
+.share-select:hover {
+  background-color: #fafafa;
+}
+
+/* Share Messages */
 .share-message {
-  padding: 10px 20px;
+  padding: 12px 24px;
   font-size: 13px;
+  font-weight: 600;
 }
 
 .share-message.success {
   background: #f0fdf4;
   color: #166534;
+  border-bottom: 1px solid #bdf0c4;
 }
 
 .share-message.error {
   background: #fef2f2;
   color: #991b1b;
+  border-bottom: 1px solid #fecaca;
 }
 
-/* Shared users list */
+/* Share List */
 .share-list {
-  padding: 16px 20px;
+  padding: 24px;
+  overflow-y: auto;
 }
 
 .share-list h3 {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
   color: var(--text-muted);
-  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
 }
 
 .share-list-empty {
   font-size: 14px;
   color: var(--text-muted);
   text-align: center;
-  padding: 16px;
+  padding: 24px;
+  font-weight: 500;
 }
 
 .share-list ul {
@@ -691,8 +866,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+  border-bottom: 1.5px solid var(--border);
+  gap: 12px;
 }
 
 .share-list-item:last-child {
@@ -701,62 +877,72 @@
 
 .share-list-user {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
   min-width: 0;
 }
 
 .share-list-name {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .share-list-email {
   font-size: 13px;
   color: var(--text-muted);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .share-access-badge {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid currentColor;
   white-space: nowrap;
 }
 
 .share-access-badge.viewer {
-  background: #e0f2fe;
+  background: rgba(3, 105, 161, 0.06);
   color: #0369a1;
 }
 
 .share-access-badge.editor {
-  background: #dcfce7;
+  background: rgba(21, 128, 61, 0.06);
   color: #15803d;
 }
 
 .btn-remove {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 4px 10px;
-  font-size: 13px;
-  color: var(--danger);
+  background: transparent;
+  border: 1.5px solid #ef4444;
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ef4444;
   cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s;
+  transition: all 0.2s;
 }
 
 .btn-remove:hover {
   background: #fef2f2;
+  transform: scale(1.02);
 }
 
-/* ============================================
+.btn-remove:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
    Download Dropdown
-   ============================================ */
+   ========================================================================== */
 .download-wrapper {
   position: relative;
   display: inline-block;
@@ -766,29 +952,31 @@
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 4px;
+  margin-top: 8px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1.5px solid #000000;
   border-radius: var(--radius);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-lg);
   min-width: 180px;
   z-index: 150;
   overflow: hidden;
+  animation: modal-fade-in 0.15s ease-out;
 }
 
 .download-menu button {
   display: block;
   width: 100%;
-  padding: 10px 16px;
+  padding: 12px 18px;
   border: none;
   background: none;
   text-align: left;
   font-size: 14px;
+  font-weight: 600;
   color: var(--text);
   cursor: pointer;
-  transition: background 0.1s;
+  transition: background 0.15s;
 }
 
 .download-menu button:hover {
-  background: var(--bg);
+  background: rgba(0, 0, 0, 0.04);
 }
