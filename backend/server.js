@@ -16,8 +16,21 @@ const PORT = process.env.PORT || 5000;
 // --- Middleware ---
 // Enable CORS — if FRONTEND_URL is set, only allow that origin;
 // otherwise allow all origins (useful during local development)
-const corsOptions = process.env.FRONTEND_URL
-  ? { origin: process.env.FRONTEND_URL, credentials: true }
+// Strip trailing slashes from FRONTEND_URL so "https://example.com/" and
+// "https://example.com" both match correctly.
+const allowedOrigin = process.env.FRONTEND_URL?.replace(/\/+$/, "");
+const corsOptions = allowedOrigin
+  ? {
+      origin: (origin, callback) => {
+        // Allow requests with no origin (server-to-server, curl, mobile apps)
+        if (!origin || origin.replace(/\/+$/, "") === allowedOrigin) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      },
+      credentials: true,
+    }
   : {};
 app.use(cors(corsOptions));
 

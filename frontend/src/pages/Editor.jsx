@@ -91,6 +91,40 @@ export default function EditorPage() {
     }
   };
 
+  // Download the document content as an HTML file
+  const handleDownload = () => {
+    if (!editor) return;
+    const htmlContent = editor.getHTML();
+    const fileName = (title || "document").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().replace(/\s+/g, "-");
+    const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title || "Document"}</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #1a1a2e; }
+    h1 { font-size: 2em; margin-bottom: 0.5em; }
+    h2 { font-size: 1.5em; margin-bottom: 0.5em; }
+    ul, ol { padding-left: 1.5em; }
+    code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    pre { background: #f3f4f6; padding: 16px; border-radius: 8px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>${title || "Untitled Document"}</h1>
+  ${htmlContent}
+</body>
+</html>`;
+    const blob = new Blob([fullHtml], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${fileName}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   // --- Effect 1: Fetch the document data (runs once on mount / user change) ---
   // This does NOT touch the editor at all — it just loads data into React state.
   useEffect(() => {
@@ -216,6 +250,15 @@ export default function EditorPage() {
               {saveStatus === "error" && "Save failed"}
             </span>
           )}
+
+          {/* Download button — visible to everyone */}
+          <button
+            className="btn-secondary"
+            onClick={handleDownload}
+            title="Download document"
+          >
+            ↓ Download
+          </button>
 
           {/* Share button — only visible to the owner */}
           {userRole === "owner" && (
